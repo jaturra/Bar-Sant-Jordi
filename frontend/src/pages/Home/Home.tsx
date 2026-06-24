@@ -62,8 +62,7 @@ export default function Home() {
             <div className="info-card__icon">🕒</div>
             <h3 className="info-card__title">Horario</h3>
             <ul className="info-card__list">
-              <li><strong>Lunes:</strong> Cerrado por descanso</li>
-              <li><strong>Mar - Dom:</strong> 09:00 - 23:00</li>
+              <li><strong>Lunes - Dom:</strong> 09:00 - 23:00</li>
             </ul>
             <p className="info-card__note">
               * Fines de semana y festivos el horario de cierre puede prolongarse.
@@ -84,7 +83,6 @@ export default function Home() {
       </main>
 
 
-      
     </div>
   );
 }

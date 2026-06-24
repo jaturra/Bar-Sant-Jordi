@@ -1,10 +1,13 @@
+// \wsl.localhost\Ubuntu\home\joseangel\proyectos\santjordi\backend\src\auth.ts
+
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
 const SECRET = (process.env.JWT_SECRET || "super_secreto_desarrollo_123") as string;
 
 export function signAdminToken(payload: { username: string }) {
-  return jwt.sign(payload, SECRET, { expiresIn: "1d" });
+  // 👇 Al quitar el 'expiresIn', el token ya no caduca nunca
+  return jwt.sign(payload, SECRET);
 }
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
