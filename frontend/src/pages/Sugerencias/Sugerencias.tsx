@@ -3,10 +3,9 @@ import "../Admin/Admin.css";
 import * as api from "../../api/sjApi";
 import { Link } from "react-router-dom";
 
-type Lang = "ca" | "es";
 type LangText = api.LangText;
 
-// 🚀 FIX DEL PRECIO: Misma protección que en el admin, asegura que si viene como "4.50" (string Decimal), lo renderiza bien.
+// 🚀 FIX DEL PRECIO: Protegido contra errores matemáticos
 function fmtEUR(n: any) {
   const v = Number(n);
   const valid = Number.isFinite(v) ? v : 0;
@@ -18,9 +17,16 @@ const months = {
   es: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
 };
 
-function formatRange(dateFromISO: string, dateToISO: string, lang: Lang) {
+// 🚀 FIX DE FECHAS: Ahora no explota si no hay fecha configurada en el admin
+function formatRange(dateFromISO?: string | null, dateToISO?: string | null, lang: "ca" | "es" = "ca") {
+  if (!dateFromISO || !dateToISO || dateFromISO === "null" || dateToISO === "null") return "";
+  
   const a = new Date(dateFromISO);
   const b = new Date(dateToISO);
+  
+  // Si la fecha es inválida, no devolvemos nada para que no quede feo
+  if (isNaN(a.getTime()) || isNaN(b.getTime())) return "";
+
   const d1 = a.getDate();
   const d2 = b.getDate();
   const m = months[lang][b.getMonth()];
@@ -56,29 +62,29 @@ export default function Sugerencias() {
   const [loading, setLoading] = useState(true);
   const [sheet, setSheet] = useState<api.AdminSuggestionsCurrent["sheet"]>(null);
 
-useEffect(() => {
+  useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        // Obtenemos los datos PÚBLICOS (sin token)
-        const data = await api.getPublicSuggestionsCurrent(); // <-- CAMBIAR AQUÍ
+        // Obtenemos los datos PÚBLICOS (sin token de admin)
+        const data = await api.getPublicSuggestionsCurrent(); 
         setSheet(data.sheet);
       } catch (e: any) {
-        alert(e?.message ?? "Error carregant suggerències");
+        console.error("Error cargando sugerencias:", e);
+        // Si falla (por ejemplo, no hay sugerencias), lo dejamos en null en lugar de asustar al cliente
+        setSheet(null);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  const hasContent = useMemo(() => {
-    if (!sheet) return false;
-    return (
-      sheet.sections.food.length > 0 ||
-      sheet.sections.desserts.length > 0 ||
-      sheet.sections.other.length > 0
-    );
-  }, [sheet]);
+  // 🚀 FIX DE ARRAYS: Sacamos las secciones de forma segura
+  const food = sheet?.sections?.food || [];
+  const desserts = sheet?.sections?.desserts || [];
+  const other = sheet?.sections?.other || [];
+
+  const hasContent = food.length > 0 || desserts.length > 0 || other.length > 0;
 
   return (
     <div className="sj-admin">
@@ -88,9 +94,11 @@ useEffect(() => {
             <div className="sj-admin__brand">
               <div className="sj-admin__brandName">BAR SANT JORDI</div>
               {sheet ? (
-                <div className="sj-admin__brandSub">Especialitats {formatRange(String(sheet.dateFrom), String(sheet.dateTo), "ca")}</div>
+                <div className="sj-admin__brandSub">
+                  Especialitats {formatRange(sheet.dateFrom as string, sheet.dateTo as string, "ca")}
+                </div>
               ) : (
-                <div className="sj-admin__brandSub">Suggerències</div>
+                <div className="sj-admin__brandSub">Fora de Carta</div>
               )}
             </div>
           </Link>
@@ -99,51 +107,51 @@ useEffect(() => {
         <div className="sj-admin__rule" />
 
         {loading ? (
-          <div style={{ padding: 16, opacity: 0.7, textAlign: "center" }}>Carregant…</div>
+          <div style={{ padding: 16, opacity: 0.7, textAlign: "center" }}>Carregant les especialitats…</div>
         ) : !sheet || !hasContent ? (
           <div className="menuEmpty" style={{ padding: 40, textAlign: "center", border: "none" }}>
-            Avui no tenim suggeriments especials actius. Consulta la nostra carta principal!
+            Avui no tenim especialitats fora de carta actives. Consulta la nostra carta principal!
           </div>
         ) : (
           <div className="sj-admin__grid sj-admin__grid--stack">
             <div className="sj-admin__col">
               
-              {sheet.sections.food.length > 0 && (
+              {food.length > 0 && (
                 <section className="menuSection">
                   <div className="menuSection__head">
                     <div className="menuSection__title">Tapes i Plats</div>
                   </div>
                   <div className="menuSection__rule" />
                   <div className="menuList">
-                    {sheet.sections.food.sort((a,b) => a.order - b.order).map((i) => (
+                    {food.sort((a,b) => a.order - b.order).map((i) => (
                       <Row key={i.id} title={i.title} price={i.price} />
                     ))}
                   </div>
                 </section>
               )}
 
-              {sheet.sections.desserts.length > 0 && (
+              {desserts.length > 0 && (
                 <section className="menuSection">
                   <div className="menuSection__head">
                     <div className="menuSection__title">Postres</div>
                   </div>
                   <div className="menuSection__rule" />
                   <div className="menuList">
-                    {sheet.sections.desserts.sort((a,b) => a.order - b.order).map((i) => (
+                    {desserts.sort((a,b) => a.order - b.order).map((i) => (
                       <Row key={i.id} title={i.title} price={i.price} />
                     ))}
                   </div>
                 </section>
               )}
 
-              {sheet.sections.other.length > 0 && (
+              {other.length > 0 && (
                 <section className="menuSection">
                   <div className="menuSection__head">
                     <div className="menuSection__title">Altres</div>
                   </div>
                   <div className="menuSection__rule" />
                   <div className="menuList">
-                    {sheet.sections.other.sort((a,b) => a.order - b.order).map((i) => (
+                    {other.sort((a,b) => a.order - b.order).map((i) => (
                       <Row key={i.id} title={i.title} price={i.price} />
                     ))}
                   </div>

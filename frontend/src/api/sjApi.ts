@@ -122,16 +122,12 @@ export const getMenu = () => request<MenuPayload>("/menu");
 /* =========================
    Public - Sugerencias
 ========================= */
-export async function getPublicSuggestionsCurrent() {
-  // Petición a la ruta que NO tiene /admin/ en el backend
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/suggestions/current`);
-  
-  if (!res.ok) {
-    throw new Error("Error obteniendo suggerències públiques");
-  }
+export async function getPublicSuggestionsCurrent(): Promise<AdminSuggestionsCurrent> {
+  // Aquí llamamos a la ruta pública de tu backend (sin auth)
+  const res = await fetch(`${API_URL}/suggestions/current`);
+  if (!res.ok) throw new Error("No s'han pogut carregar les suggerències");
   return res.json();
 }
-
 
 /* =========================
    Departments
