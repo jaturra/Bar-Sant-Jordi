@@ -130,16 +130,15 @@ app.get("/menu", async (_req, res) => {
   });
 });
 
-// Endpoint para obtener las sugerencias activas actuales (¡NUEVO!)
+// Endpoint para obtener las sugerencias activas actuales (¡FIX ZONAS HORARIAS!)
 app.get("/suggestions/current", async (_req, res) => {
   try {
-    // 1. Buscamos la hoja activa actual
-    const now = new Date();
+    // 1. Buscamos la hoja más reciente que esté activa
     const sheet = await prisma.suggestionSheet.findFirst({
       where: {
-        isActive: true,
-        dateFrom: { lte: now },
-        dateTo: { gte: now },
+        isActive: true, 
+        // 🚀 Eliminamos los bloqueos de dateFrom y dateTo 
+        // para que la hoja aparezca en el momento en que la guardas.
       },
       orderBy: { dateFrom: "desc" },
     });
