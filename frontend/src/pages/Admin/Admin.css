@@ -747,3 +747,39 @@
     color: #23c1ff !important; 
   }
 }
+
+/* =========================================
+   FIN ESTILOS EXCLUSIVOS PARA LA FIESTA MAYOR
+========================================= */
+
+.carta-fiesta__header {
+  text-align: center;
+  padding: 1.5rem 1rem 0.5rem;
+}
+
+.carta-fiesta__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  align-items: center;
+}
+
+.carta-fiesta__pdf-block {
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.carta-fiesta__btn {
+  display: block;
+  margin: 0.5rem auto 0;
+  padding: 1rem 1.5rem;
+  background: #b0202e;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-align: center;
+}
