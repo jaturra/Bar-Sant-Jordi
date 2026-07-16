@@ -12,28 +12,14 @@ type Department = {
   id: string;
   title: LangText;
   order: number;
-  items: Array<{
-    id: string;
-    departmentId: string;
-    title: LangText;
-    price: number;
-    order: number;
-    allergens: string[];
-  }>;
+  items: Array<any>;
 };
 
 type SupplementGroup = {
   id: string;
   title: LangText;
   order: number;
-  items: Array<{
-    id: string;
-    groupId: string;
-    title: LangText;
-    price: number;
-    order: number;
-    allergens: string[];
-  }>;
+  items: Array<any>;
 };
 
 type Allergen = {
@@ -133,15 +119,11 @@ export default function Carta() {
   }, [allergens]);
 
   // =========================================================
-  // 🚀 LÓGICA DE ORDENACIÓN ESTRICTA POR 'ORDER' DEL ADMIN
+  // 🚀 LÓGICA DE ORDENACIÓN ESTRICTA POR 'ORDRE'
   // =========================================================
   const combinedMenu = useMemo(() => {
-    // 1. Preparamos los departamentos marcándolos para saber qué son
     const deps = departments.map((d) => ({ ...d, isSupplement: false }));
-    // 2. Preparamos los suplementos marcándolos
     const supps = supplementGroups.map((g) => ({ ...g, isSupplement: true }));
-    
-    // 3. Los unimos todos en una sola lista y los ordenamos por el campo 'order'
     const allSections = [...deps, ...supps];
     return allSections.sort((a, b) => a.order - b.order);
   }, [departments, supplementGroups]);
@@ -191,10 +173,8 @@ export default function Carta() {
         ) : (
           <div className="sj-admin__grid sj-admin__grid--stack">
             <div className="sj-admin__col">
-              
-              {/* ITERAMOS LA LISTA ÚNICA ORDENADA ESTRICTAMENTE */}
+              {/* RENDER COMBINADO */}
               {combinedMenu.map((section) => {
-                // Si la sección actual es un Suplemento, pintamos su diseño
                 if (section.isSupplement) {
                   return (
                     <div className="sj-admin__suppWrap" key={`supp-${section.id}`} style={{ marginBottom: "20px" }}>
@@ -208,9 +188,7 @@ export default function Carta() {
                       />
                     </div>
                   );
-                } 
-                // Si la sección actual es un Departamento (Platos, Tapas...), pintamos su diseño
-                else {
+                } else {
                   return (
                     <MenuSectionReadOnly
                       key={`dep-${section.id}`}
@@ -224,7 +202,6 @@ export default function Carta() {
                   );
                 }
               })}
-
             </div>
           </div>
         )}
