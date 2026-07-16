@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import "../Admin/Admin.css"; // reutilizamos la estética del admin
+import React, { useEffect, useMemo, useState } from "react";
+import "../Admin/Admin.css"; 
 import * as api from "../../api/sjApi";
 import { Link } from "react-router-dom";
 
@@ -42,7 +42,7 @@ type Allergen = {
   label: LangText;
 };
 
-const DISPLAY_KEY = "sj_admin_displayMode"; // compartimos el modo con Admin
+const DISPLAY_KEY = "sj_admin_displayMode";
 
 function fmtEUR(n: number) {
   const v = Number.isFinite(n) ? n : 0;
@@ -126,23 +126,36 @@ export default function Carta() {
   const primaryLang = primaryLangFrom(displayMode);
   const secondaryLang = otherLang(primaryLang);
 
-  // Mapa rápido para pintar chips de alérgenos en filas
   const allergenById = useMemo(() => {
     const m = new Map<string, Allergen>();
     for (const a of allergens) m.set(a.id, a);
     return m;
   }, [allergens]);
 
+  // =========================================================
+  // 🚀 LÓGICA DE ORDENACIÓN ESTRICTA POR 'ORDER' DEL ADMIN
+  // =========================================================
+  const combinedMenu = useMemo(() => {
+    // 1. Preparamos los departamentos marcándolos para saber qué son
+    const deps = departments.map((d) => ({ ...d, isSupplement: false }));
+    // 2. Preparamos los suplementos marcándolos
+    const supps = supplementGroups.map((g) => ({ ...g, isSupplement: true }));
+    
+    // 3. Los unimos todos en una sola lista y los ordenamos por el campo 'order'
+    const allSections = [...deps, ...supps];
+    return allSections.sort((a, b) => a.order - b.order);
+  }, [departments, supplementGroups]);
+
   return (
     <div className="sj-admin">
       <div className="sj-admin__paper">
         <header className="sj-admin__top">
-        <Link to="/" className="sj-admin__brandLink" aria-label="Tornar a l'inici">
-          <div className="sj-admin__brand">
-            <div className="sj-admin__brandName">BAR SANT JORDI</div>
-            <div className="sj-admin__brandSub">Carta</div>
-          </div>
-        </Link>
+          <Link to="/" className="sj-admin__brandLink" aria-label="Tornar a l'inici">
+            <div className="sj-admin__brand">
+              <div className="sj-admin__brandName">BAR SANT JORDI</div>
+              <div className="sj-admin__brandSub">Carta</div>
+            </div>
+          </Link>
 
           <div className="sj-admin__actions">
             <div className="seg">
@@ -178,33 +191,40 @@ export default function Carta() {
         ) : (
           <div className="sj-admin__grid sj-admin__grid--stack">
             <div className="sj-admin__col">
-              {departments.map((d) => (
-                <MenuSectionReadOnly
-                  key={d.id}
-                  title={d.title}
-                  displayMode={displayMode}
-                  primaryLang={primaryLang}
-                  secondaryLang={secondaryLang}
-                  items={d.items}
-                  allergenById={allergenById}
-                />
-              ))}
-
-              {supplementGroups.length > 0 && (
-                <div className="sj-admin__suppWrap">
-                  {supplementGroups.map((g) => (
-                    <SupplementBoxReadOnly
-                      key={g.id}
-                      title={g.title}
+              
+              {/* ITERAMOS LA LISTA ÚNICA ORDENADA ESTRICTAMENTE */}
+              {combinedMenu.map((section) => {
+                // Si la sección actual es un Suplemento, pintamos su diseño
+                if (section.isSupplement) {
+                  return (
+                    <div className="sj-admin__suppWrap" key={`supp-${section.id}`} style={{ marginBottom: "20px" }}>
+                      <SupplementBoxReadOnly
+                        title={section.title}
+                        displayMode={displayMode}
+                        primaryLang={primaryLang}
+                        secondaryLang={secondaryLang}
+                        items={section.items}
+                        allergenById={allergenById}
+                      />
+                    </div>
+                  );
+                } 
+                // Si la sección actual es un Departamento (Platos, Tapas...), pintamos su diseño
+                else {
+                  return (
+                    <MenuSectionReadOnly
+                      key={`dep-${section.id}`}
+                      title={section.title}
                       displayMode={displayMode}
                       primaryLang={primaryLang}
                       secondaryLang={secondaryLang}
-                      items={g.items}
+                      items={section.items}
                       allergenById={allergenById}
                     />
-                  ))}
-                </div>
-              )}
+                  );
+                }
+              })}
+
             </div>
           </div>
         )}
@@ -242,12 +262,7 @@ function MenuSectionReadOnly(props: {
   displayMode: DisplayMode;
   primaryLang: Lang;
   secondaryLang: Lang;
-  items: Array<{
-    id: string;
-    title: LangText;
-    price: number;
-    allergens: string[];
-  }>;
+  items: Array<any>;
   allergenById: Map<string, Allergen>;
 }) {
   const heading = headingFor(props.title, props.displayMode);
@@ -291,12 +306,7 @@ function SupplementBoxReadOnly(props: {
   displayMode: DisplayMode;
   primaryLang: Lang;
   secondaryLang: Lang;
-  items: Array<{
-    id: string;
-    title: LangText;
-    price: number;
-    allergens: string[];
-  }>;
+  items: Array<any>;
   allergenById: Map<string, Allergen>;
 }) {
   const heading = headingFor(props.title, props.displayMode);
