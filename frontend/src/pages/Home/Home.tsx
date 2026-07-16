@@ -30,17 +30,15 @@ export default function Home() {
             <div className="home-banner__overlay">
               <h2 className="home-banner__title">BIENVENIDO</h2>
               <div className="home-banner__rule"></div>
-              <p className="home-banner__subtitle">Tapas • Platos • Fiesta Mayor</p>
+              <p className="home-banner__subtitle">Tapas • Platos • Sugerencias</p>
               
               <div className="home-banner__actions">
                 <Link className="home-banner__btn home-banner__btn--primary" to="/carta">
                   VER LA CARTA
                 </Link>
-                {/*
                 <Link className="home-banner__btn home-banner__btn--secondary" to="/sugerencias">
                   SUGERENCIAS
                 </Link>
-                */}
               </div>
             </div>
           </div>
